@@ -99,17 +99,15 @@ export default function MeetingsPage() {
           >
             Decline
           </button></>
-        )
-        :
-        (
+    ):(
           <button
             className="btn btn-success"
            
           >
            {m.status}
           </button>
-        )
-        ):(<><button className="btn btn-primary" onClick={()=>navigate(`/MeetingDetails/${m._id}`)}>
+    )
+    ):(<><button className="btn btn-primary" onClick={()=>navigate(`/MeetingDetails/${m._id}`)}>
             View Details
           </button></>)}
     </div>
