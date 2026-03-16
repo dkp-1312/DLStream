@@ -19,7 +19,7 @@ import ChatRoom from "./components/ChatRoom";
 import { useAuthContext } from "./context/AuthContext.jsx";
 
 import CreateMeeting from "./pages/CreateMeeting.jsx";
-import MeetingsPage from "./pages/Meetingspage.jsx";
+import MeetingsPage from "./pages/MeetingsPage.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";
 import MeetingDetails from "./pages/MeetingDetails.jsx";
 import CreateMeeting1 from "./pages/CreateMeeting1.jsx";
