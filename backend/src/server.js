@@ -54,7 +54,17 @@ const rooms = {}; // Object to track users in each room
 
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
+    socket.on("join-room",(roomId,userId)=>{
 
+        socket.join(roomId);
+    
+        socket.to(roomId).emit("user-connected",userId);
+    
+        socket.on("disconnect",()=>{
+          socket.to(roomId).emit("user-disconnected",userId);
+        });
+    
+      });
     socket.on("joinRoom", (room) => {
         if (!rooms[room]) {
             rooms[room] = new Set(); // Initialize the room if it doesn't exist

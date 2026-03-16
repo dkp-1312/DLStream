@@ -22,6 +22,7 @@ import CreateMeeting from "./pages/CreateMeeting.jsx";
 import MeetingsPage from "./pages/Meetingspage.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";
 import MeetingDetails from "./pages/MeetingDetails.jsx";
+import CreateMeeting1 from "./pages/CreateMeeting1.jsx";
 import MeetingRoom from "./pages/MeetingRoom";
 
 const App = () => {
@@ -46,6 +47,10 @@ const App = () => {
     {
       path:"/createMeeting",
       element:<><NavBar/><CreateMeeting/></>
+    },
+    {
+      path:"/createMeeting1",
+      element:<><NavBar/><CreateMeeting1/></>
     },
     {
       path:"/meetings",
