@@ -4,10 +4,10 @@ import {
 
 import { useState } from "react";
 
-import Controls from "./Controls";
-import ParticipantsPanel from "./ParticipantsPanel";
-import ChatRoom1 from "./ChatRoom1"; // ✅ YOUR EXISTING COMPONENT
-import VideoGrid from "./Videogrid";
+import Controls from "./Controls.jsx";
+import ParticipantsPanel from "./ParticipantsPanel.jsx";
+import ChatRoom1 from "./ChatRoom1.jsx"; // ✅ YOUR EXISTING COMPONENT
+import VideoGrid from "./VideoGrid.jsx";
 
 export default function MeetingRoom({ token, url ,roomName,onDisconnect}) {
 

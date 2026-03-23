@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: process.env.frontend_url, 
   credentials: true, 
 }));
 
@@ -46,7 +46,7 @@ app.use("/hls", express.static(path.join(__dirname, "hls")));
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-       origin: "http://localhost:5173" ,
+       origin: process.env.frontend_url,
        methods: ["GET", "POST"],
        credentials: true
       },

@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 const HomePage = () => {
   const navigate = useNavigate();
   const [streamKey, setStreamKey] = useState("");
-
+  
+  console.log(import.meta.env.VITE_API_URL);
   const handleWatch = () => {
     if (streamKey.trim() !== "") {
       navigate(`/watch/${streamKey}`);
