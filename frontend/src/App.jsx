@@ -19,11 +19,12 @@ import ChatRoom from "./components/ChatRoom";
 import { useAuthContext } from "./context/AuthContext.jsx";
 
 import CreateMeeting from "./pages/CreateMeeting.jsx";
-import MeetingsPage from "./pages/MeetingsPage.jsx";
+import MeetingsPage from "./pages/Meetingspage.jsx";
 import CalendarPage from "./pages/CalendarPage.jsx";
 import MeetingDetails from "./pages/MeetingDetails.jsx";
 import CreateMeeting1 from "./pages/CreateMeeting1.jsx";
 import MeetingRoom from "./pages/MeetingRoom";
+import JoinMeeting from "./pages/JoinMeeting.jsx";
 
 const App = () => {
   const { authUser} = useAuthContext();
@@ -45,7 +46,7 @@ const App = () => {
       element: <><NavBar/> <WatchStream/></>,
     },
     {
-      path:"/createMeeting",
+      path:"/createMeeting",//LiveKit
       element:<><NavBar/><CreateMeeting/></>
     },
     {
@@ -63,6 +64,10 @@ const App = () => {
     {
       path:"/MeetingDetails/:meetingId",
       element:<><NavBar/><MeetingDetails/></>
+    },
+    {
+      path:"/JoinMeeting/:roomName",//Livekit
+      element:<><NavBar/><JoinMeeting/></>
     },
     {
       path:"/chat/:roomName",
@@ -107,6 +112,6 @@ const App = () => {
       <Toaster />
     </div>
   );
-};
+}; 
 
 export default App;

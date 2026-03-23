@@ -45,7 +45,7 @@ const SignUpPage = () => {
         e.preventDefault();
 
         if (userOtpInput === generatedOtp) {
-            try {
+            try {   
                 const response = await axios.post("http://localhost:3000/auth/signup", formData);
                 alert("Account created successfully!");
                 navigate("/login");

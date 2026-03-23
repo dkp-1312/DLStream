@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.lk-participant-placeholder{
+    display: none !important;
+  }
+.lk-participant-metadata{
+    display: none !important;
+  }
+.lk-control-bar 
+{
+    display: none !important;
+  }

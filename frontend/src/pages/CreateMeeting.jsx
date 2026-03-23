@@ -10,13 +10,14 @@ export default function CreateMeeting() {
   const submit = async () => {
     const invitations = emails.split(",");
 
-    await API.post("/meeting", {
+    const res=await API.post("/meeting1/create", {
       meetingName,
       meetingDate,
       invitations
     });
-
+    console.log("Meeting Created:", res);
     alert("Meeting Created");
+    console.log("Join Link:", res.data.meetingLink);
   };
 
   return (

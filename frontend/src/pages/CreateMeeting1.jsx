@@ -1,24 +1,30 @@
-import { v4 as uuidv4 } from "uuid";
-import { useNavigate } from "react-router-dom";
 
-export default function CreateMeeting1(){
+import { useState } from "react";
+import API from "../services/api";
 
-  const navigate = useNavigate();
+export default function CreateMeeting1() {
 
-  const createMeeting = ()=>{
-    const id = uuidv4();
-    navigate(`/meeting/${id}`);
-  }
+  const [meeting, setMeeting] = useState(null);
 
-  return(
+  const create = async () => {
+
+    const res = await API.post(
+      "/meeting1/create",
+      { meetingName: "Test Meeting" }
+    );
+
+    setMeeting(res.data);
+  };
+
+  return (
     <div>
+      <button onClick={create}>Create Meeting</button>
 
-      <h2>Create Video Meeting</h2>
-
-      <button onClick={createMeeting}>
-        Start Meeting
-      </button>
-
+      {meeting && (
+        <div>
+          <p>Room: {meeting.roomName}</p>
+        </div>
+      )}
     </div>
-  )
+  );
 }

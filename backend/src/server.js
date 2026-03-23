@@ -14,6 +14,7 @@ import routerF from "./routes/otp1.routes.js";
 
 import routerStream from "./routes/stream.route.js";
 import routerMeeting from "./routes/meetingRoutes.js";
+import routerMeeting1 from "./routes/meetingRoutes1.js";
 
 import routerS from "./routes/streamRoutes.js";
 import { fileURLToPath } from 'url';
@@ -33,6 +34,7 @@ app.use("/auth",authRoutes);
 app.use("/otp",routerF);
 app.use("/stream",routerStream);
 app.use("/meeting",routerMeeting);
+app.use("/meeting1",routerMeeting1);
 
 
 const __filename = fileURLToPath(import.meta.url);

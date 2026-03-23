@@ -26,6 +26,8 @@ const meetingSchema= new mongoose.Schema(
             type:Date,
             required:true
         },
+        roomName:{type:String,required:true},
+        meetingLink:{type:String,required:true},
         invitations:[invitationSchema]
     },
     {timestamps:true}

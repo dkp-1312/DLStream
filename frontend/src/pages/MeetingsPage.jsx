@@ -14,7 +14,7 @@ export default function MeetingsPage() {
   }, []);
 
   const load = async () => {
-    const res = await API.get("/meeting");
+    const res = await API.get("/meeting1");
 
     const sortedMeetings = res.data.sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -110,6 +110,9 @@ export default function MeetingsPage() {
     ):(<><button className="btn btn-primary" onClick={()=>navigate(`/MeetingDetails/${m._id}`)}>
             View Details
           </button></>)}
+          <button className="btn btn-accent text-white" onClick={() => navigate(`/JoinMeeting/${m.roomName}`)}>
+            Join Meeting
+          </button>
     </div>
   </div>
 </div>
