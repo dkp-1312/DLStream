@@ -9,7 +9,7 @@ import ParticipantsPanel from "./ParticipantsPanel";
 import ChatRoom1 from "./ChatRoom1"; // ✅ YOUR EXISTING COMPONENT
 import VideoGrid from "./Videogrid";
 
-export default function MeetingRoom({ token, url ,roomName}) {
+export default function MeetingRoom({ token, url ,roomName,onDisconnect}) {
 
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -22,6 +22,7 @@ export default function MeetingRoom({ token, url ,roomName}) {
       video
       audio
       style={{ height:"100vh"}}
+      onDisconnected={onDisconnect}
     >
 
       <div className="flex h-full">
@@ -65,7 +66,7 @@ export default function MeetingRoom({ token, url ,roomName}) {
 
       </div>
 
-      <Controls />
+      <Controls onDisconnect={onDisconnect}/>
 
     </LiveKitRoom>
   );

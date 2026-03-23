@@ -1,4 +1,4 @@
-import { useState, useEffect} from "react";
+import { useState} from "react";
 import API from "../services/api";
 import MeetingRoom from '../components/MeetingRoom';
 import WaitingRoom from "../components/WaitingRoom";
@@ -10,6 +10,7 @@ export default function JoinMeeting() {
 
   const [token, setToken] = useState(null);
   const [url, setUrl] = useState("");
+  const [isConnected, setIsConnected] = useState(false);
 
   // useEffect(()=>{
   //   async function fetchToken(){
@@ -32,10 +33,16 @@ export default function JoinMeeting() {
 
     setToken(res.data.token);
     setUrl(res.data.url);
+    setIsConnected(true);
   };
+  const handleDisconnect = () => {
+    setToken(null);
+    setIsConnected(false);
+  }
 
-  if(!token)
+  if(!isConnected)
     return <WaitingRoom onJoin={handleJoin}/>;
 
-  return <MeetingRoom token={token} roomName={roomName} url={url} />;
+  return <MeetingRoom token={token} roomName={roomName} url={url}
+  onDisconnect={handleDisconnect} />;
 }
