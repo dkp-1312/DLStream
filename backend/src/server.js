@@ -22,11 +22,12 @@ import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const frontend=process.env.frontend_url;
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.frontend_url, 
+  origin: frontend, 
   credentials: true, 
 }));
 
@@ -46,7 +47,7 @@ app.use("/hls", express.static(path.join(__dirname, "hls")));
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-       origin: process.env.frontend_url,
+       origin: frontend,
        methods: ["GET", "POST"],
        credentials: true
       },
