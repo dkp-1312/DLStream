@@ -12,6 +12,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import routerF from "./routes/otp1.routes.js";
 
+import routerProfile from "./routes/profile.route.js";
+
 import routerStream from "./routes/stream.route.js";
 import routerMeeting from "./routes/meetingRoutes.js";
 import routerMeeting1 from "./routes/meetingRoutes1.js";
@@ -33,6 +35,8 @@ app.use(cors({
 
 app.use("/auth",authRoutes);
 app.use("/otp",routerF);
+app.use("/profile",routerProfile);
+
 app.use("/stream",routerStream);
 app.use("/meeting",routerMeeting);
 app.use("/meeting1",routerMeeting1);

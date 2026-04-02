@@ -20,6 +20,20 @@ const userSchema=new mongoose.Schema({
         type:String,
         default:""
     },
+    username:{
+        type:String,
+        default:"",
+        unique:true,
+    },
+    phone:{
+        type:String,
+        default:""
+    },
+    settings: {
+        micDefault: { type: Boolean, default: true },
+        cameraDefault: { type: Boolean, default: true },
+        theme: { type: String, default: "dark" }
+      },
     profilePic:{
         type:String,
         default:""
@@ -44,12 +58,12 @@ userSchema.pre('save',async function(next) {
 });
 
 userSchema.methods.matchPassword=async function(enteredPassword)
-{
+{ 
     const isPasswordCorrect=await bcrypt.compare(enteredPassword,this.password);
     return isPasswordCorrect;
 }
 
-const User=mongoose.model("User",userSchema);   
+const User=mongoose.model("User",userSchema);    
 
 
 

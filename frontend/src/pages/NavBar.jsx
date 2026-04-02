@@ -35,8 +35,15 @@ const NavBar = () => {
         tabIndex={0}
         className="menu menu-sm dropdown-content bg-white rounded-box z-[1] mt-3 w-52 p-2 shadow">
         <li><Link to="/">Homepage</Link></li>
-        <li><Link to="/createMeeting">Create Meeting</Link></li>
-        <li><Link to="/create">Create Stream</Link></li>
+        {authUser?
+        (<>
+         <li><Link to="/profile">Profile</Link></li>
+         <li><Link to="/settings">Settings</Link></li>
+         <li><Link to="/createMeeting">Create Meeting</Link></li>
+         <li><Link to="/create">Create Stream</Link></li>
+        </>)
+        :(<></>)}
+       
         <li><a>About</a></li>
       </ul>
     </div>

@@ -2,8 +2,14 @@ import express from 'express';
 import {
   createStream,
   getStreams,
-  getWatchScript,
+  getWatchScript
 } from "../controllers/streamController.js";
+
+
+
+
+
+
 
 const routerS = express.Router();
 

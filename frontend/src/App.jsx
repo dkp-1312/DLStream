@@ -25,6 +25,9 @@ import MeetingDetails from "./pages/MeetingDetails.jsx";
 import CreateMeeting1 from "./pages/CreateMeeting1.jsx";
 import MeetingRoom from "./pages/MeetingRoom";
 import JoinMeeting from "./pages/JoinMeeting.jsx";
+import Profile from "./pages/Profile.jsx";
+import EditProfile from "./pages/EditProfile.jsx";
+import Settings from "./pages/Settings.jsx";
 
 const App = () => {
   const { authUser} = useAuthContext();
@@ -88,6 +91,18 @@ const App = () => {
     {
       path: "/signup",
       element: !authUser?( <><NavBar/><SignUpPage /></>):(<Navigate to="/"  replace/>),
+    },
+    {
+      path: "/profile",
+      element: !authUser?(<Navigate to="/login"  replace/>):(<><NavBar/><Profile /></>),
+    },
+    {
+      path: "/editProfile",
+      element: !authUser?(<Navigate to="/login"  replace/>):(<><NavBar/><EditProfile /></>),
+    },
+    {
+      path: "/settings",
+      element: !authUser?(<Navigate to="/login"  replace/>):(<><NavBar/><Settings /></>),
     },
     {
       path: "/notifications",

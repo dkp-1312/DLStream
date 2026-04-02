@@ -110,7 +110,7 @@ export default function MeetingsPage() {
     ):(<><button className="btn btn-primary" onClick={()=>navigate(`/MeetingDetails/${m._id}`)}>
             View Details
           </button></>)}
-          <button className="btn btn-accent text-white" onClick={() => navigate(`/JoinMeeting/${m.roomName}`)}>
+          <button className="btn btn-secondary text-white" onClick={() => navigate(`/JoinMeeting/${m.roomName}`)}>
             Join Meeting
           </button>
     </div>

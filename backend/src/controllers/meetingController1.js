@@ -55,12 +55,12 @@ export const joinMeeting = async (req, res) => {
     res.json({
       token,
       url: LIVEKIT_URL,
-    });
+    }); 
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-
+  
 
 export const getUserMeetings = async (req, res) => {
   try {
