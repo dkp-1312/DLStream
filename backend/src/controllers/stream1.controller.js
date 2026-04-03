@@ -9,7 +9,7 @@ export const createStream = async (req, res) => {
   res.json({
     message: "Stream Created Successfully",
     streamId: stream._id,
-    link: `http://localhost:5173/stream/${stream._id}`,
+    link:`${process.env.frontend_url}/stream/${stream._id}`,
   });
 };
 

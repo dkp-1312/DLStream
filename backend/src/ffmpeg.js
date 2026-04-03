@@ -69,7 +69,7 @@ function stopFFmpeg(streamKey)
   if(!stream) return;
   console.log("🛑 Stopping FFmpeg for:", streamKey);
 
-  stream.processs.kill("SIGKILL");
+  stream.process.kill("SIGKILL");
   cleanupStream(streamKey);
 }
 
