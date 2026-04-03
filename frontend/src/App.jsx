@@ -122,9 +122,15 @@ const App = () => {
     },
   ]);
   return (
-    <div className="h-screen" data-theme="winter">
+    <div className="min-h-dvh flex flex-col bg-base-200" data-theme="dlstream">
       <RouterProvider router={router} />
-      <Toaster />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          className: "!bg-base-100 !text-base-content !shadow-soft !border !border-base-300",
+          duration: 4000,
+        }}
+      />
     </div>
   );
 }; 

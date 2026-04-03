@@ -34,33 +34,67 @@ export const joinMeeting = async (req, res) => {
   try {
     const { roomName, username } = req.body;
 
-    if(!roomName || !username) 
-    {
-      return res.status(400).json({ error: "roomName and username are required" });
+    const meeting = await Meeting.findOne({ roomName });
+    if (!meeting) return res.status(404).json({ error: "Meeting not found" });
+
+    // Determine Roles
+    const isOwner = meeting.ownerId.toString() === req.user._id.toString();
+    const isInvited = meeting.invitations.some(inv => inv.email === req.user.email);
+    const isHost = isOwner || isInvited;
+
+    // 🔥 GATEKEEPER: Block Viewers if the meeting is not Live yet
+    if (!meeting.isLive && !isHost) {
+        return res.status(403).json({ 
+            error: "Meeting has not started yet. Please wait for the host to go live." 
+        });
     }
 
+    // Generate Token
+    const uniqueIdentity = `${req.user._id}_${Date.now()}`;
+    const displayName = req.user.fullName || username;
+
     const at = new AccessToken(API_KEY, API_SECRET, {
-      identity: username,
+      identity: uniqueIdentity,
+      name: displayName,
     });
 
     at.addGrant({
       roomJoin: true,
       room: roomName,
-      canPublish: true,
+      canPublish: isHost,
       canSubscribe: true,
     });
 
     const token = await at.toJwt();
 
-    res.json({
-      token,
-      url: LIVEKIT_URL,
-    }); 
+    // 🔥 Send isOwner and isLive state to frontend
+    res.json({ token, url: LIVEKIT_URL, isHost, isOwner, isLive: meeting.isLive });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-  
+
+// 🔥 NEW CONTROLLER: Toggle Live Status
+export const toggleLiveStatus = async (req, res) => {
+    try {
+        const { roomName } = req.params;
+        const meeting = await Meeting.findOne({ roomName });
+        
+        if (!meeting) return res.status(404).json({ error: "Meeting not found" });
+
+        // Only the actual Owner can start/stop the broadcast
+        if (meeting.ownerId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: "Only the meeting owner can go live." });
+        }
+
+        meeting.isLive = !meeting.isLive;
+        await meeting.save();
+        
+        res.json({ success: true, isLive: meeting.isLive });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 
 export const getUserMeetings = async (req, res) => {
   try {

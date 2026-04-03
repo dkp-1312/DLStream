@@ -18,8 +18,7 @@ export default function Settings(){
             alert("Password changed successfully. Please login again.");
             handleLogout();
         }
-        catch(err)
-        {
+        catch {
             alert("Error changing password. Please try again.");
         }
     }

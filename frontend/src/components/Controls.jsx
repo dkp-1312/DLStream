@@ -1,72 +1,123 @@
-import {
-  useLocalParticipant,
-  useRoomContext
-} from "@livekit/components-react";
+import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
+import { useState } from "react";
+import API from "../services/api";
 
-export default function Controls({ onDisconnect }) {
-  // 1. Extract the reactive state variables directly from the hook
-  const { 
-      localParticipant, 
-      isMicrophoneEnabled, 
-      isCameraEnabled, 
-      isScreenShareEnabled 
+export default function Controls({
+  onDisconnect,
+  isHost,
+  isOwner,
+  initialIsLive,
+  roomName,
+}) {
+  const {
+    localParticipant,
+    isMicrophoneEnabled,
+    isCameraEnabled,
+    isScreenShareEnabled,
   } = useLocalParticipant();
-  
-  const room = useRoomContext();
 
-  // 2. Use async/await and check if localParticipant exists before toggling
+  const room = useRoomContext();
+  const [isLive, setIsLive] = useState(initialIsLive);
+
   const toggleMic = async () => {
-      if (localParticipant) {
-          await localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
-      }
+    if (localParticipant)
+      await localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
   };
 
   const toggleCam = async () => {
-      if (localParticipant) {
-          await localParticipant.setCameraEnabled(!isCameraEnabled);
-      }
+    if (localParticipant)
+      await localParticipant.setCameraEnabled(!isCameraEnabled);
   };
 
   const shareScreen = async () => {
-      if (localParticipant) {
-          await localParticipant.setScreenShareEnabled(!isScreenShareEnabled);
-      }
+    if (localParticipant)
+      await localParticipant.setScreenShareEnabled(!isScreenShareEnabled);
+  };
+
+  const toggleLive = async () => {
+    try {
+      const res = await API.put(`/meeting1/live/${roomName}`);
+      setIsLive(res.data.isLive);
+    } catch (error) {
+      alert("Failed to change live status");
+      console.error(error);
+    }
   };
 
   const endCall = () => {
-      room.disconnect();
-      if (onDisconnect) { onDisconnect(); }
+    room.disconnect();
+    if (onDisconnect) onDisconnect();
   };
 
   return (
-      // Added z-50 to ensure it always stays above the video grid
-      <div className="fixed bottom-0 w-full flex justify-center gap-4 p-4 bg-base-200 z-50 shadow-lg">
-          
-          <button 
-              className={`btn ${isMicrophoneEnabled ? 'btn-success' : 'btn-error'}`} 
-              onClick={toggleMic}
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-base-300/60 bg-base-100/95 px-3 py-3 shadow-[0_-4px_24px_rgba(15,23,42,0.12)] backdrop-blur-md supports-[backdrop-filter]:bg-base-100/85 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex min-h-[2.5rem] flex-1 items-center justify-center sm:justify-start">
+          {isOwner && (
+            <button
+              type="button"
+              className={`btn btn-sm font-semibold sm:btn-md ${
+                isLive ? "btn-error animate-pulse" : "btn-success"
+              }`}
+              onClick={toggleLive}
+            >
+              {isLive ? "Stop broadcast" : "Go live"}
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          {isHost ? (
+            <>
+              <button
+                type="button"
+                className={`btn btn-circle btn-sm sm:btn-md ${
+                  isMicrophoneEnabled ? "btn-success" : "btn-neutral text-base-100"
+                }`}
+                onClick={toggleMic}
+                title={isMicrophoneEnabled ? "Mute" : "Unmute"}
+                aria-pressed={isMicrophoneEnabled}
+              >
+                {isMicrophoneEnabled ? "🎤" : "🔇"}
+              </button>
+              <button
+                type="button"
+                className={`btn btn-circle btn-sm sm:btn-md ${
+                  isCameraEnabled ? "btn-success" : "btn-neutral text-base-100"
+                }`}
+                onClick={toggleCam}
+                title={isCameraEnabled ? "Camera off" : "Camera on"}
+                aria-pressed={isCameraEnabled}
+              >
+                {isCameraEnabled ? "📷" : "🚫"}
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm font-semibold sm:btn-md ${
+                  isScreenShareEnabled ? "btn-warning" : "btn-info"
+                }`}
+                onClick={shareScreen}
+              >
+                {isScreenShareEnabled ? "Stop share" : "Share screen"}
+              </button>
+            </>
+          ) : (
+            <p className="rounded-lg bg-base-200 px-4 py-2 text-center text-sm font-medium text-base-content/70">
+              View-only — host controls media
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-1 items-center justify-center sm:justify-end">
+          <button
+            type="button"
+            className="btn btn-error btn-sm font-bold sm:btn-md"
+            onClick={endCall}
           >
-              {isMicrophoneEnabled ? " Mic On" : " Mic Off"}
+            {isHost ? "End for everyone" : "Leave"}
           </button>
-
-          <button 
-              className={`btn ${isCameraEnabled ? 'btn-success' : 'btn-error'}`} 
-              onClick={toggleCam}
-          >
-              {isCameraEnabled ? " Cam On" : " Cam Off"}
-          </button>
-
-          <button 
-              className={`btn ${isScreenShareEnabled ? 'btn-warning' : 'btn-info'}`} 
-              onClick={shareScreen}
-          >
-              {isScreenShareEnabled ? "Stop Share" : " Screen Share"}
-          </button>
-
-          <button className="btn btn-error outline outline-2 outline-offset-2" onClick={endCall}>
-              End Meeting
-          </button>
-
+        </div>
       </div>
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- context + hook in one module */
 import { createContext, useContext, useState, useEffect } from "react";
 import API from "../services/api";
 
@@ -20,7 +21,7 @@ export const AuthContextProvider = ({ children }) => {
                 const res = await API.get("/auth/me",{withCredentials:true});
                 setAuthUser(res.data);
                 localStorage.setItem("authUser",JSON.stringify(res.data));
-            } catch (error) {
+            } catch {
                 setAuthUser(null);
                 localStorage.removeItem("authUser");
             } finally {

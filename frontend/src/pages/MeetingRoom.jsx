@@ -6,86 +6,31 @@ import io from "socket.io-client";
 const socket = io(import.meta.env.VITE_API_URL);
 
 export default function MeetingRoom() {
-  const { id } = useParams();
+  const { meetingId: id } = useParams();
   const navigate = useNavigate();
   const videoGrid = useRef();
-  
+
   const [myStream, setMyStream] = useState(null);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const peerInstance = useRef(null);
-  const calls = useRef([]); // Track calls to close them properly
+  const calls = useRef([]);
 
-  useEffect(() => {
-    const peer = new Peer(undefined, {
-      host: "localhost",
-      port: 9000,
-      path: "/peerjs"
-    });
-    peerInstance.current = peer;
+  function stopAllTracks(stream) {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+  }
 
-    // 1. Create Local Video Element
-    const myVideo = document.createElement("video");
-    myVideo.muted = true; 
-
-    // 2. Android/Mobile Specific Setup
-    navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true
-    }).then(stream => {
-      setMyStream(stream);
-      addVideoStream(myVideo, stream);
-
-      peer.on("call", call => {
-        call.answer(stream);
-        const video = document.createElement("video");
-        call.on("stream", userVideoStream => {
-          addVideoStream(video, userVideoStream);
-        });
-        calls.current.push(call);
-      });
-
-      socket.on("user-connected", (userId) => {
-        const call = peer.call(userId, stream);
-        const video = document.createElement("video");
-        call.on("stream", (userVideoStream) => {
-          addVideoStream(video, userVideoStream);
-        });
-        calls.current.push(call);
-      });
-    }).catch(err => {
-      console.error("Failed to get local stream", err);
-      alert("Please allow camera and microphone access to join the meeting.");
-    });
-
-    peer.on("open", (userId) => {
-      socket.emit("join-room", id, userId);
-    });
-
-    socket.on("user-disconnected", (userId) => {
-      console.log("User disconnected:", userId);
-      // Logic to remove the specific video element would go here
-    });
-
-    return () => {
-      stopAllTracks(myStream);
-      socket.disconnect();
-      peer.destroy();
-    };
-  }, [id]);
-
-  // Modified for Android/Mobile support
-  const addVideoStream = (video, stream) => {
+  function addVideoStream(video, stream) {
     video.srcObject = stream;
-    
-    // CRITICAL FOR MOBILE:
-    video.setAttribute("playsinline", "true"); 
+    video.setAttribute("playsinline", "true");
     video.setAttribute("webkit-playsinline", "true");
     video.autoplay = true;
+    video.className = "aspect-video w-full rounded-lg bg-neutral object-cover";
 
     video.addEventListener("loadedmetadata", () => {
-      // Use a promise-based play to handle browser blocks
-      video.play().catch(error => {
+      video.play().catch((error) => {
         console.error("Autoplay was prevented:", error);
       });
     });
@@ -93,15 +38,68 @@ export default function MeetingRoom() {
     if (videoGrid.current) {
       videoGrid.current.append(video);
     }
-  };
+  }
 
-  const stopAllTracks = (stream) => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-  };
+  useEffect(() => {
+    let activeStream = null;
 
-  // --- Handlers ---
+    const peer = new Peer(undefined, {
+      host: "localhost",
+      port: 9000,
+      path: "/peerjs",
+    });
+    peerInstance.current = peer;
+
+    const myVideo = document.createElement("video");
+    myVideo.muted = true;
+
+    navigator.mediaDevices
+      .getUserMedia({
+        video: true,
+        audio: true,
+      })
+      .then((stream) => {
+        activeStream = stream;
+        setMyStream(stream);
+        addVideoStream(myVideo, stream);
+
+        peer.on("call", (call) => {
+          call.answer(stream);
+          const video = document.createElement("video");
+          call.on("stream", (userVideoStream) => {
+            addVideoStream(video, userVideoStream);
+          });
+          calls.current.push(call);
+        });
+
+        socket.on("user-connected", (userId) => {
+          const call = peer.call(userId, stream);
+          const video = document.createElement("video");
+          call.on("stream", (userVideoStream) => {
+            addVideoStream(video, userVideoStream);
+          });
+          calls.current.push(call);
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to get local stream", err);
+        alert("Please allow camera and microphone access to join the meeting.");
+      });
+
+    peer.on("open", (userId) => {
+      socket.emit("join-room", id, userId);
+    });
+
+    socket.on("user-disconnected", (userId) => {
+      console.log("User disconnected:", userId);
+    });
+
+    return () => {
+      stopAllTracks(activeStream);
+      socket.disconnect();
+      peer.destroy();
+    };
+  }, [id]);
 
   const toggleCamera = () => {
     if (!myStream) return;
@@ -123,62 +121,55 @@ export default function MeetingRoom() {
 
   const leaveMeeting = () => {
     stopAllTracks(myStream);
-    calls.current.forEach(call => call.close());
+    calls.current.forEach((call) => call.close());
     if (peerInstance.current) peerInstance.current.destroy();
     socket.emit("leave-room", id);
     navigate("/");
   };
 
   return (
-    <div style={{ padding: "10px", fontFamily: "sans-serif" }}>
-      <h2>Meeting Room</h2>
-      
-      <div style={{ 
-        display: "flex", 
-        flexWrap: "wrap", // Better for mobile screens
-        gap: "8px", 
-        marginBottom: "20px",
-        background: "#f0f0f0",
-        padding: "10px",
-        borderRadius: "8px",
-        position: "sticky", // Keep controls visible
-        top: 0,
-        zIndex: 10
-      }}>
-        <button onClick={toggleCamera} style={buttonStyle(isCameraOn ? "#64748b" : "#ef4444")}>
-          {isCameraOn ? "📷 Off" : "📸 On"}
-        </button>
+    <main className="flex min-h-[calc(100dvh-3.5rem)] flex-col bg-base-200">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-6 sm:px-6 lg:py-8">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-base-content sm:text-2xl">
+            Meeting room
+          </h1>
+          <p className="mt-1 text-sm text-base-content/65">Peer connection (legacy)</p>
+        </div>
 
-        <button onClick={toggleMute} style={buttonStyle(isMuted ? "#ef4444" : "#64748b")}>
-          {isMuted ? "🔇 Unmute" : "🎙️ Mute"}
-        </button>
+        <div className="sticky top-14 z-10 flex flex-wrap gap-2 rounded-xl border border-base-300/80 bg-base-100 p-3 shadow-soft">
+          <button
+            type="button"
+            className={`btn btn-sm font-semibold sm:btn-md ${
+              isCameraOn ? "btn-neutral text-base-100" : "btn-error"
+            }`}
+            onClick={toggleCamera}
+          >
+            {isCameraOn ? "Camera on" : "Camera off"}
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm font-semibold sm:btn-md ${
+              isMuted ? "btn-error" : "btn-neutral text-base-100"
+            }`}
+            onClick={toggleMute}
+          >
+            {isMuted ? "Unmute" : "Mute"}
+          </button>
+          <button
+            type="button"
+            className="btn btn-error btn-sm font-bold sm:btn-md"
+            onClick={leaveMeeting}
+          >
+            Leave
+          </button>
+        </div>
 
-        <button onClick={leaveMeeting} style={buttonStyle("#b91c1c")}>
-          📞 Leave
-        </button>
+        <div
+          ref={videoGrid}
+          className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        />
       </div>
-
-      <div
-        ref={videoGrid}
-        style={{
-          display: "grid",
-          // Adjust grid for mobile: 1 column on small screens, 2+ on larger
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: "10px"
-        }}
-      />
-    </div>
+    </main>
   );
 }
-
-const buttonStyle = (bgColor) => ({
-  flex: "1 1 auto", // Buttons grow to fill space on mobile
-  padding: "12px 8px",
-  backgroundColor: bgColor,
-  color: "white",
-  border: "none",
-  borderRadius: "5px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  fontSize: "14px"
-});

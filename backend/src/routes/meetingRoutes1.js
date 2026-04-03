@@ -1,5 +1,5 @@
 import express from "express";
-import { createMeeting, joinMeeting , getUserMeetings} from "../controllers/meetingController1.js";
+import { createMeeting, joinMeeting , getUserMeetings,toggleLiveStatus} from "../controllers/meetingController1.js";
 import { protect } from "../middleware/auth.middleware.js";
 
 const routerMeeting1 = express.Router();
@@ -11,5 +11,6 @@ routerMeeting1.post("/create", protect, createMeeting);
 routerMeeting1.post("/join", protect, joinMeeting);
 
 routerMeeting1.get("/",protect, getUserMeetings);
+routerMeeting1.put("/live/:roomName", protect, toggleLiveStatus);
 
 export default routerMeeting1;

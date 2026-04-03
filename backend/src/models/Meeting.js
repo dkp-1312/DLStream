@@ -28,7 +28,8 @@ const meetingSchema= new mongoose.Schema(
         },
         roomName:{type:String,required:true},
         meetingLink:{type:String,required:true},
-        invitations:[invitationSchema]
+        invitations:[invitationSchema],
+        isLive: { type: Boolean, default: false }
     },
     {timestamps:true}
 );

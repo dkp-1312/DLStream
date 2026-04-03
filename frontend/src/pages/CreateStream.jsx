@@ -56,7 +56,17 @@ export default function CreateStream() {
       <p className="mt-4">Connected users:{userCount}</p>
     </div>
     <div className="divider lg:divider-horizontal"></div>
-    <ChatRoom roomName={stream.watchScript} />
+    <div className="flex min-h-0 w-full max-w-md flex-1 flex-col lg:max-w-md">
+      <div className="flex h-[min(520px,70vh)] min-h-0 flex-col overflow-hidden rounded-2xl border border-warning/35 bg-base-100/95 shadow-lg">
+        <ChatRoom
+          roomName={
+            typeof stream === "object" && stream?.watchScript
+              ? stream.watchScript
+              : undefined
+          }
+        />
+      </div>
+    </div>
     </div>
     </>
   );
