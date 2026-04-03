@@ -29,7 +29,7 @@ export default function WatchStream() {
           </button>
         </div>
 
-        <HLSPlayer url={`http://dlstream-m5lg.onrender.com/hls/${key}/index.m3u8`} />
+        <HLSPlayer url={`https://dlstream-m5lg.onrender.com/hls/${key}/index.m3u8`} />
       </div>
 
       <div className="divider lg:divider-horizontal hidden lg:flex" />
