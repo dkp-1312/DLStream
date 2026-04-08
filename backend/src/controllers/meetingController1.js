@@ -2,18 +2,16 @@ import Meeting from "../models/Meeting.js";
 import { v4 as uuidv4 } from "uuid";
 import { AccessToken } from "livekit-server-sdk";
 
-// ENV VALUES
-const API_KEY = "APIKEY123";
-const API_SECRET = "2ab2b5797939d07a6b815e0e4f38ca69f7f51e5a237b347e13c5228144a87fd7";
-const LIVEKIT_URL = "wss://dlstream-api.eastasia.cloudapp.azure.com";
+
+// const LIVEKIT_URL = "wss://dlstream-api.eastasia.cloudapp.azure.com";
 
 // ✅ Create Meeting
 export const createMeeting = async (req, res) => {
   try {
-    const { meetingName,meetingDate,invitations } = req.body;
+    const { meetingName, meetingDate, invitations } = req.body;
     const roomName = `room-${uuidv4()}`;
 
-    const meetingLink=`http://localhost:5173/JoinMeeting/${roomName}`;
+    const meetingLink = `http://localhost:5173/JoinMeeting/${roomName}`;
     const meeting = await Meeting.create({
       meetingName,
       meetingDate,
@@ -44,16 +42,16 @@ export const joinMeeting = async (req, res) => {
 
     // 🔥 GATEKEEPER: Block Viewers if the meeting is not Live yet
     if (!meeting.isLive && !isHost) {
-        return res.status(403).json({ 
-            error: "Meeting has not started yet. Please wait for the host to go live." 
-        });
+      return res.status(403).json({
+        error: "Meeting has not started yet. Please wait for the host to go live."
+      });
     }
 
     // Generate Token
     const uniqueIdentity = `${req.user._id}_${Date.now()}`;
     const displayName = req.user.fullName || username;
 
-    const at = new AccessToken(API_KEY, API_SECRET, {
+    const at = new AccessToken(process.env.API_KEY1, process.env.API_SECRET1, {
       identity: uniqueIdentity,
       name: displayName,
       metadata: JSON.stringify({ profilePic: req.user.profilePic || "" })
@@ -69,7 +67,7 @@ export const joinMeeting = async (req, res) => {
     const token = await at.toJwt();
 
     // 🔥 Send isOwner and isLive state to frontend
-    res.json({ token, url: LIVEKIT_URL, isHost, isOwner, isLive: meeting.isLive });
+    res.json({ token, url: process.env.LIVEKIT_URL1, isHost, isOwner, isLive: meeting.isLive });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -77,24 +75,24 @@ export const joinMeeting = async (req, res) => {
 
 // 🔥 NEW CONTROLLER: Toggle Live Status
 export const toggleLiveStatus = async (req, res) => {
-    try {
-        const { roomName } = req.params;
-        const meeting = await Meeting.findOne({ roomName });
-        
-        if (!meeting) return res.status(404).json({ error: "Meeting not found" });
+  try {
+    const { roomName } = req.params;
+    const meeting = await Meeting.findOne({ roomName });
 
-        // Only the actual Owner can start/stop the broadcast
-        if (meeting.ownerId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: "Only the meeting owner can go live." });
-        }
+    if (!meeting) return res.status(404).json({ error: "Meeting not found" });
 
-        meeting.isLive = !meeting.isLive;
-        await meeting.save();
-        
-        res.json({ success: true, isLive: meeting.isLive });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    // Only the actual Owner can start/stop the broadcast
+    if (meeting.ownerId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "Only the meeting owner can go live." });
     }
+
+    meeting.isLive = !meeting.isLive;
+    await meeting.save();
+
+    res.json({ success: true, isLive: meeting.isLive });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const getUserMeetings = async (req, res) => {
