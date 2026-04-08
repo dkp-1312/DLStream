@@ -11,6 +11,13 @@ export default function Profile() {
         <div className="min-h-screen flex items-center justify-center bg-base-200">
         <div className="card w-full max-w-md bg-base-100 shadow-xl p-4">
             <h1 className="text-2xl font-bold">Profile</h1>
+            <div className="mt-4 flex flex-col items-center">
+                {authUser.profilePic ? (
+                    <img src={authUser.profilePic} alt="Profile" className="w-24 h-24 rounded-full object-cover mb-4 shadow" />
+                ) : (
+                    <div className="w-24 h-24 rounded-full bg-base-300 mb-4 flex items-center justify-center">No Pic</div>
+                )}
+            </div>
             <div className="mt-4">
                 <p><b>Name:</b> {authUser.fullName}</p>
                 <p><b>Email:</b> {authUser.email}</p>

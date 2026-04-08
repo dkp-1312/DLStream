@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Peer from "peerjs";
 import io from "socket.io-client";
-
+import { toast } from "react-hot-toast";
 const socket = io(import.meta.env.VITE_API_URL);
 
 export default function MeetingRoom() {
@@ -83,7 +83,7 @@ export default function MeetingRoom() {
       })
       .catch((err) => {
         console.error("Failed to get local stream", err);
-        alert("Please allow camera and microphone access to join the meeting.");
+        toast.error("Please allow camera and microphone access to join the meeting.");
       });
 
     peer.on("open", (userId) => {

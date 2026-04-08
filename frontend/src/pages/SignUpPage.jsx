@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-
+import { toast } from "react-hot-toast";
 const SignUpPage = () => {
   const navigate = useNavigate();
 
@@ -15,7 +15,7 @@ const SignUpPage = () => {
     const { fullName, email, password, confirmPassword } = e.target.elements;
 
     if (password.value !== confirmPassword.value) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
 
@@ -34,10 +34,10 @@ const SignUpPage = () => {
       });
 
       setIsOtpSent(true);
-      alert("OTP sent to your email!");
+      toast.success("OTP sent to your email!");
     } catch (error) {
       console.error("Failed to send OTP:", error);
-      alert("Error sending OTP. Please try again.");
+      toast.error("Error sending OTP. Please try again.");
     }
   };
 
@@ -47,13 +47,13 @@ const SignUpPage = () => {
     if (userOtpInput === generatedOtp) {
       try {
         await axios.post("http://localhost:3000/auth/signup", formData);
-        alert("Account created successfully!");
+        toast.success("Account created successfully!");
         navigate("/login");
       } catch {
-        alert("Sign-up failed during account creation.");
+        toast.error("Sign-up failed during account creation.");
       }
     } else {
-      alert("Invalid OTP. Please check your email.");
+      toast.error("Invalid OTP. Please check your email.");
     }
   };
 

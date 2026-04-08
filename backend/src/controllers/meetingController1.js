@@ -5,7 +5,7 @@ import { AccessToken } from "livekit-server-sdk";
 // ENV VALUES
 const API_KEY = "APIKEY123";
 const API_SECRET = "2ab2b5797939d07a6b815e0e4f38ca69f7f51e5a237b347e13c5228144a87fd7";
-const LIVEKIT_URL = "ws://20.2.137.241:7880";
+const LIVEKIT_URL = "wss://dlstream-api.eastasia.cloudapp.azure.com";
 
 // ✅ Create Meeting
 export const createMeeting = async (req, res) => {
@@ -56,6 +56,7 @@ export const joinMeeting = async (req, res) => {
     const at = new AccessToken(API_KEY, API_SECRET, {
       identity: uniqueIdentity,
       name: displayName,
+      metadata: JSON.stringify({ profilePic: req.user.profilePic || "" })
     });
 
     at.addGrant({

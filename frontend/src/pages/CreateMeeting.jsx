@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import API from "../services/api";
-
+import { toast } from "react-hot-toast";
 export default function CreateMeeting() {
 
   const [meetingName, setMeetingName] = useState("");
@@ -16,7 +16,7 @@ export default function CreateMeeting() {
       invitations
     });
     console.log("Meeting Created:", res);
-    alert("Meeting Created");
+    toast.success("Meeting Created");
     console.log("Join Link:", res.data.meetingLink);
   };
 

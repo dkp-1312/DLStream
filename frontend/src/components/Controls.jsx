@@ -1,7 +1,7 @@
 import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
 import { useState } from "react";
 import API from "../services/api";
-
+import { toast } from "react-hot-toast";
 export default function Controls({
   onDisconnect,
   isHost,
@@ -39,7 +39,7 @@ export default function Controls({
       const res = await API.put(`/meeting1/live/${roomName}`);
       setIsLive(res.data.isLive);
     } catch (error) {
-      alert("Failed to change live status");
+      toast.error("Failed to change live status");
       console.error(error);
     }
   };

@@ -1,7 +1,7 @@
 import {useState} from "react";
 import API from "../services/api";
 import {useAuthContext} from "../context/AuthContext";
-
+import { toast } from "react-hot-toast";
 export default function Settings(){
     const [data,setData]=useState({
         oldPassword:"",
@@ -15,11 +15,11 @@ export default function Settings(){
     const handleSubmit=async()=>{
         try{
             await API.put("/profile/change-password",data);
-            alert("Password changed successfully. Please login again.");
+            toast.success("Password changed successfully. Please login again.");
             handleLogout();
         }
         catch {
-            alert("Error changing password. Please try again.");
+            toast.error("Error changing password. Please try again.");
         }
     }
     return (

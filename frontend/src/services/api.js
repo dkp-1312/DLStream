@@ -15,6 +15,11 @@ export const login = async (credentials) => {
     return response.data;
 };
 
+export const googleLogin = async (userData) => {
+    const response = await API.post("/auth/google", userData);
+    return response.data;
+};
+
 // Function to handle signup
 export const signup = async (userData) => {
     const response = await API.post("/auth/signup", userData);

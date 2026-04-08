@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuthContext } from "../context/AuthContext.jsx";
 import { socket } from "../socket";
-
+import { toast } from "react-hot-toast";
 /**
  * Socket.io chat for a room. Stream keys and meeting room names are different
  * `room` values — same protocol, separate channels.
@@ -23,7 +23,7 @@ export function useSocketChat(roomName) {
     };
 
     const handleStreamEnded = ({ message }) => {
-      alert(message);
+      toast(message);
     };
 
     socket.on("receiveMessage", handleReceiveMessage);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
 import { useNavigate, useParams } from "react-router-dom";
-
+import { toast } from "react-hot-toast";
 export default function MeetingDetails() {
   const { meetingId } = useParams();
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export default function MeetingDetails() {
         setMeeting(res.data);
       } catch (err) {
         if (err.response?.status === 403) {
-          alert("You are not the owner of this meeting. Access denied.");
+          toast.error("You are not the owner of this meeting. Access denied.");
           navigate("/meetings");
         } else {
           console.error(err);

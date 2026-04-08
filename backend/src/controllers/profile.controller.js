@@ -14,11 +14,10 @@ export const getProfile=async(req,res)=>{
 
 export const updateProfile=async(req,res)=>{
     try{
-        const {fullName,username,bio,phone}=req.body;
-        console
+        const {fullName,username,bio,phone,profilePic}=req.body;
         const user=await User.findByIdAndUpdate(
             req.user.id,
-            {fullName,username,bio,phone},
+            {fullName,username,bio,phone,profilePic},
             {new:true}
         ).select("-password");
         res.json({success:true,user});

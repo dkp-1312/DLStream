@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, startTransition } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
-
+import { toast } from "react-hot-toast";
 async function fetchMeetingsSorted() {
   const res = await API.get("/meeting1");
   return [...res.data].sort(
@@ -33,7 +33,7 @@ export default function MeetingsPage() {
     const res = await API.put(`/meeting/${id}/respond`, { status });
 
     if (res.status === 200) {
-      alert("Response recorded");
+      toast.success("Response recorded");
     }
 
     await load();

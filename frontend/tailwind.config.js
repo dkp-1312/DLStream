@@ -53,7 +53,6 @@ export default {
           "error-content": "#ffffff",
         },
       },
-      "dark",
     ],
   },
 }

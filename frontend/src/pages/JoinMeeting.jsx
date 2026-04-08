@@ -4,7 +4,7 @@ import MeetingRoom from '../components/MeetingRoom';
 import WaitingRoom from "../components/WaitingRoom";
 import { useParams } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
-
+import { toast } from "react-hot-toast";
 export default function JoinMeeting() {
   const { roomName } = useParams();
   const { authUser } = useAuthContext();
@@ -32,9 +32,9 @@ export default function JoinMeeting() {
     } catch (error) {
       // 🔥 Show the specific error if the meeting isn't live yet
       if (error.response && error.response.status === 403) {
-        alert(error.response.data.error); 
+        toast.error(error.response.data.error); 
       } else {
-        alert("Failed to join meeting.");
+        toast.error("Failed to join meeting.");
       }
     }
   };

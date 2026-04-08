@@ -1,4 +1,5 @@
 import { useTracks, ParticipantTile } from "@livekit/components-react";
+import { Track } from "livekit-client";
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 
 const PAGE_SIZE = 4;
@@ -9,8 +10,8 @@ function trackKey(track, i) {
 
 export default function VideoGrid() {
   const tracks = useTracks([
-    { source: "camera" },
-    { source: "screen_share" },
+    { source: Track.Source.Camera, withPlaceholder: true },
+    { source: Track.Source.ScreenShare, withPlaceholder: false },
   ]);
 
   const [page, setPage] = useState(0);
@@ -166,6 +167,15 @@ export default function VideoGrid() {
 }
 
 function VideoTile({ track, onPin, compact }) {
+  const isCameraOff = track.publication?.isMuted || !track.publication;
+  let profilePic = "";
+  if (track.participant?.metadata) {
+    try {
+      const meta = JSON.parse(track.participant.metadata);
+      profilePic = meta.profilePic;
+    } catch (e) {}
+  }
+
   return (
     <div
       className={`group relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral shadow-lg ring-1 ring-white/10 transition-shadow hover:ring-white/20 [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain ${
@@ -173,6 +183,12 @@ function VideoTile({ track, onPin, compact }) {
       }`}
     >
       <ParticipantTile trackRef={track} className="h-full w-full" />
+
+      {isCameraOff && profilePic && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-base-300">
+           <img src={profilePic} className="w-24 h-24 rounded-full object-cover shadow-xl border-4 border-base-100" alt="avatar" />
+        </div>
+      )}
 
       <button
         type="button"
