@@ -1,4 +1,4 @@
-import { LiveKitRoom } from "@livekit/components-react";
+import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
 import { useMemo, useState } from "react";
 import Controls from "./Controls.jsx";
 import ParticipantsPanel from "./ParticipantsPanel.jsx";
@@ -90,6 +90,7 @@ export default function MeetingRoom({
         initialIsLive={initialIsLive}
         roomName={roomName}
       />
+      <RoomAudioRenderer />
     </LiveKitRoom>
   );
 }

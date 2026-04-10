@@ -17,6 +17,7 @@ export default function HLSPlayer({ url }) {
       ref={videoRef}
       controls
       autoPlay
+      playsInline
       style={{ width: "100%", borderRadius: "10px" }}
     />
   );
