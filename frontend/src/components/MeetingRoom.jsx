@@ -43,22 +43,20 @@ export default function MeetingRoom({
         </button>
         <button
           type="button"
-          className={`rounded-full border border-base-300/80 px-4 shadow-md backdrop-blur-sm transition-all ${
-            showParticipants
-              ? "btn btn-primary btn-sm border-primary"
-              : "btn btn-sm border-base-300 bg-base-100/90 text-base-content hover:bg-base-100"
-          }`}
+          className={`rounded-full border border-base-300/80 px-4 shadow-md backdrop-blur-sm transition-all ${showParticipants
+            ? "btn btn-primary btn-sm border-primary"
+            : "btn btn-sm border-base-300 bg-base-100/90 text-base-content hover:bg-base-100"
+            }`}
           onClick={() => setShowParticipants(!showParticipants)}
         >
           👥 Participants
         </button>
         <button
           type="button"
-          className={`rounded-full border border-base-300/80 px-4 shadow-md backdrop-blur-sm transition-all ${
-            showChat
-              ? "btn btn-primary btn-sm border-primary"
-              : "btn btn-sm border-base-300 bg-base-100/90 text-base-content hover:bg-base-100"
-          }`}
+          className={`rounded-full border border-base-300/80 px-4 shadow-md backdrop-blur-sm transition-all ${showChat
+            ? "btn btn-primary btn-sm border-primary"
+            : "btn btn-sm border-base-300 bg-base-100/90 text-base-content hover:bg-base-100"
+            }`}
           onClick={() => setShowChat(!showChat)}
         >
           💬 Chat

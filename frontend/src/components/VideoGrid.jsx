@@ -17,6 +17,21 @@ export default function VideoGrid() {
   const [page, setPage] = useState(0);
   const [pinnedTrack, setPinnedTrack] = useState(null);
   const scrollRef = useRef(null);
+  const pinnedContainerRef = useRef(null);
+
+  const togglePinnedFullScreen = async (e) => {
+    e.stopPropagation();
+    if (!pinnedContainerRef.current) return;
+    if (!document.fullscreenElement) {
+      try {
+        await pinnedContainerRef.current.requestFullscreen();
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   const pageCount = Math.max(1, Math.ceil(tracks.length / PAGE_SIZE));
 
@@ -63,8 +78,8 @@ export default function VideoGrid() {
   return (
     <div className="relative h-full min-h-0 w-full">
       {pinnedTrack && isPinnedTrackActive ? (
-        <div className="box-border flex h-full min-h-0 w-full gap-3 p-3 pb-24 sm:gap-4 sm:p-4">
-          <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-neutral ring-1 ring-white/10 shadow-2xl [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain">
+        <div className="box-border flex h-full min-h-0 w-full gap-3 p-3 sm:gap-4 sm:p-4">
+          <div ref={pinnedContainerRef} className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-neutral ring-1 ring-white/10 shadow-2xl [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain">
             <ParticipantTile trackRef={pinnedTrack} className="h-full w-full" />
             <button
               type="button"
@@ -72,6 +87,16 @@ export default function VideoGrid() {
               onClick={() => setPinnedTrack(null)}
             >
               Unpin
+            </button>
+            <button
+              type="button"
+              className="btn btn-circle btn-ghost btn-sm absolute right-3 bottom-3 z-50 border-0 bg-black/60 text-white backdrop-blur-sm transition-opacity hover:bg-black/80"
+              onClick={togglePinnedFullScreen}
+              title="Toggle Fullscreen"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+              </svg>
             </button>
           </div>
 
@@ -101,7 +126,7 @@ export default function VideoGrid() {
             {pages.map((pageTracks, pi) => (
               <div
                 key={pi}
-                className="box-border flex h-full min-h-0 w-full min-w-full shrink-0 snap-center snap-always flex-col px-3 pb-24 pt-1 sm:px-4"
+                className="box-border flex h-full min-h-0 w-full min-w-full shrink-0 snap-center snap-always flex-col px-3 pt-1 sm:px-4"
               >
                 <div className="grid h-full min-h-0 w-full max-w-6xl grid-cols-1 grid-rows-2 gap-3 sm:mx-auto sm:grid-cols-2 sm:gap-4">
                   {Array.from({ length: PAGE_SIZE }).map((_, i) => {
@@ -152,9 +177,8 @@ export default function VideoGrid() {
                 {pages.map((_, i) => (
                   <span
                     key={i}
-                    className={`h-1.5 rounded-full transition-all ${
-                      i === page ? "w-4 bg-primary" : "w-1.5 bg-base-100/40"
-                    }`}
+                    className={`h-1.5 rounded-full transition-all ${i === page ? "w-4 bg-primary" : "w-1.5 bg-base-100/40"
+                      }`}
                   />
                 ))}
               </div>
@@ -173,20 +197,36 @@ function VideoTile({ track, onPin, compact }) {
     try {
       const meta = JSON.parse(track.participant.metadata);
       profilePic = meta.profilePic;
-    } catch (e) {}
+    } catch (e) { }
   }
+
+  const containerRef = useRef(null);
+
+  const toggleFullScreen = async (e) => {
+    e.stopPropagation();
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      try {
+        await containerRef.current.requestFullscreen();
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   return (
     <div
-      className={`group relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral shadow-lg ring-1 ring-white/10 transition-shadow hover:ring-white/20 [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain ${
-        compact ? "aspect-video w-full shrink-0" : "h-full w-full"
-      }`}
+      ref={containerRef}
+      className={`group relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden rounded-2xl bg-neutral shadow-lg ring-1 ring-white/10 transition-shadow hover:ring-white/20 [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain ${compact ? "aspect-video w-full shrink-0" : "h-full w-full"
+        }`}
     >
       <ParticipantTile trackRef={track} className="h-full w-full" />
 
       {isCameraOff && profilePic && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-base-300">
-           <img src={profilePic} className="w-24 h-24 rounded-full object-cover shadow-xl border-4 border-base-100" alt="avatar" />
+          <img src={profilePic} className="w-24 h-24 rounded-full object-cover shadow-xl border-4 border-base-100" alt="avatar" />
         </div>
       )}
 
@@ -197,6 +237,17 @@ function VideoTile({ track, onPin, compact }) {
         title="Pin video"
       >
         📌
+      </button>
+
+      <button
+        type="button"
+        className="btn btn-circle btn-ghost btn-xs absolute right-2 bottom-2 z-50 border-0 bg-black/60 text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-black/80 group-hover:opacity-100"
+        onClick={toggleFullScreen}
+        title="Toggle Fullscreen"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+        </svg>
       </button>
     </div>
   );

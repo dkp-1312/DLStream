@@ -41,12 +41,13 @@ export function useSocketChat(roomName) {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !authUser || !roomName) return;
+    if (!newMessage.trim() || !roomName) return;
 
+    const senderName = authUser?.fullName || authUser?.displayName || "Anonymous";
     const messageData = {
       text: newMessage.trim(),
       room: roomName,
-      sender: authUser.fullName || "Anonymous",
+      sender: senderName,
       timestamp: new Date().toLocaleTimeString(),
     };
 
@@ -60,6 +61,6 @@ export function useSocketChat(roomName) {
     setNewMessage,
     handleSendMessage,
     messagesEndRef,
-    canSend: !!authUser,
+    canSend: true,
   };
 }

@@ -99,7 +99,7 @@ export default function ChatPanel({ mode, roomName }) {
           <button
             type="submit"
             disabled={!canSend}
-            className={`btn btn-sm shrink-0 rounded-lg px-4 font-semibold shadow-sm ${sendBtn} disabled:btn-disabled`}
+            className={`btn btn-sm shrink-0 rounded-lg px-4 my-auto font-semibold shadow-sm ${sendBtn} disabled:btn-disabled`}
           >
             Send
           </button>
