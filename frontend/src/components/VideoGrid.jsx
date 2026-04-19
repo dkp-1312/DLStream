@@ -1,6 +1,7 @@
 import { useTracks, ParticipantTile } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import HLSPlayer from "./HLSPlayer.jsx";
 
 const PAGE_SIZE = 4;
 
@@ -8,11 +9,24 @@ function trackKey(track, i) {
   return track.publication?.trackSid ?? `${track.participant?.identity ?? "p"}-${i}`;
 }
 
-export default function VideoGrid() {
-  const tracks = useTracks([
+export default function VideoGrid({ watchOBS, watchScript }) {
+  const allTracks = useTracks([
     { source: Track.Source.Camera, withPlaceholder: true },
     { source: Track.Source.ScreenShare, withPlaceholder: false },
   ]);
+
+  const tracks = useMemo(() => {
+    return allTracks.filter(t => t.participant?.permissions?.canPublish);
+  }, [allTracks]);
+
+  const allItems = useMemo(() => {
+    const items = [];
+    if (watchOBS && watchScript) {
+      items.push({ type: "obs", id: "obs-stream", watchScript });
+    }
+    items.push(...tracks.map((t, i) => ({ type: "track", id: trackKey(t, i), track: t })));
+    return items;
+  }, [watchOBS, watchScript, tracks]);
 
   const [page, setPage] = useState(0);
   const [pinnedTrack, setPinnedTrack] = useState(null);
@@ -33,21 +47,21 @@ export default function VideoGrid() {
     }
   };
 
-  const pageCount = Math.max(1, Math.ceil(tracks.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(allItems.length / PAGE_SIZE));
 
   const pages = useMemo(() => {
     const out = [];
     for (let i = 0; i < pageCount; i++) {
-      out.push(tracks.slice(i * PAGE_SIZE, i * PAGE_SIZE + PAGE_SIZE));
+      out.push(allItems.slice(i * PAGE_SIZE, i * PAGE_SIZE + PAGE_SIZE));
     }
     return out;
-  }, [tracks, pageCount]);
+  }, [allItems, pageCount]);
 
   const isPinnedTrackActive =
     pinnedTrack &&
-    tracks.some(
-      (t) => t.publication?.trackSid === pinnedTrack.publication?.trackSid
-    );
+    (pinnedTrack.type === "obs" ? (watchOBS && watchScript) : tracks.some(
+      (t) => t.publication?.trackSid === pinnedTrack.track?.publication?.trackSid
+    ));
 
   const goToPage = useCallback(
     (next) => {
@@ -80,36 +94,47 @@ export default function VideoGrid() {
       {pinnedTrack && isPinnedTrackActive ? (
         <div className="box-border flex h-full min-h-0 w-full gap-3 p-3 sm:gap-4 sm:p-4">
           <div ref={pinnedContainerRef} className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-neutral ring-1 ring-white/10 shadow-2xl [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain">
-            <ParticipantTile trackRef={pinnedTrack} className="h-full w-full" />
+            {pinnedTrack.type === "obs" ? (
+              <HLSPlayer url={`http://localhost:3000/hls/${pinnedTrack.watchScript}/index.m3u8`} />
+            ) : (
+              <ParticipantTile trackRef={pinnedTrack.track} className="h-full w-full" />
+            )}
             <button
-              type="button"
-              className="btn btn-error btn-sm absolute right-3 top-3 z-50 rounded-full shadow-lg"
-              onClick={() => setPinnedTrack(null)}
-            >
-              Unpin
-            </button>
-            <button
-              type="button"
-              className="btn btn-circle btn-ghost btn-sm absolute right-3 bottom-3 z-50 border-0 bg-black/60 text-white backdrop-blur-sm transition-opacity hover:bg-black/80"
-              onClick={togglePinnedFullScreen}
-              title="Toggle Fullscreen"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-              </svg>
-            </button>
+               type="button"
+               className="btn btn-error btn-sm absolute right-3 top-3 z-50 rounded-full shadow-lg"
+               onClick={() => setPinnedTrack(null)}
+             >
+               Unpin
+             </button>
+             <button
+               type="button"
+               className="btn btn-circle btn-ghost btn-sm absolute right-3 bottom-3 z-50 border-0 bg-black/60 text-white backdrop-blur-sm transition-opacity hover:bg-black/80"
+               onClick={togglePinnedFullScreen}
+               title="Toggle Fullscreen"
+             >
+               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+               </svg>
+             </button>
           </div>
 
           <div className="scrollbar-thin hidden min-h-0 w-1/3 shrink-0 flex-col gap-3 overflow-y-auto overscroll-contain pr-1 sm:flex md:w-1/4 lg:w-1/5">
-            {tracks
+            {allItems
               .filter(
-                (t) => t.publication?.trackSid !== pinnedTrack.publication?.trackSid
+                (item) => item.type === "obs" ? pinnedTrack.type !== "obs" : item.track?.publication?.trackSid !== pinnedTrack.track?.publication?.trackSid
               )
-              .map((track, i) => (
+              .map((item) => item.type === "obs" ? (
+                <OBSTile
+                  key={item.id}
+                  item={item}
+                  onPin={() => setPinnedTrack(item)}
+                  compact
+                />
+              ) : (
                 <VideoTile
-                  key={trackKey(track, i)}
-                  track={track}
-                  onPin={() => setPinnedTrack(track)}
+                  key={item.id}
+                  track={item.track}
+                  onPin={() => setPinnedTrack(item)}
                   compact
                 />
               ))}
@@ -130,8 +155,8 @@ export default function VideoGrid() {
               >
                 <div className="grid h-full min-h-0 w-full max-w-6xl grid-cols-1 grid-rows-2 gap-3 sm:mx-auto sm:grid-cols-2 sm:gap-4">
                   {Array.from({ length: PAGE_SIZE }).map((_, i) => {
-                    const track = pageTracks[i];
-                    if (!track) {
+                    const item = pageTracks[i];
+                    if (!item) {
                       return (
                         <div
                           key={`empty-${pi}-${i}`}
@@ -140,11 +165,20 @@ export default function VideoGrid() {
                         />
                       );
                     }
+                    if (item.type === "obs") {
+                      return (
+                        <OBSTile
+                           key={item.id}
+                           item={item}
+                           onPin={() => setPinnedTrack(item)}
+                        />
+                      );
+                    }
                     return (
                       <VideoTile
-                        key={trackKey(track, pi * PAGE_SIZE + i)}
-                        track={track}
-                        onPin={() => setPinnedTrack(track)}
+                        key={item.id}
+                        track={item.track}
+                        onPin={() => setPinnedTrack(item)}
                       />
                     );
                   })}
@@ -248,6 +282,45 @@ function VideoTile({ track, onPin, compact }) {
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
         </svg>
+      </button>
+    </div>
+  );
+}
+
+function OBSTile({ item, onPin, compact }) {
+  const containerRef = useRef(null);
+
+  const toggleFullScreen = async (e) => {
+    e.stopPropagation();
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      try {
+        await containerRef.current.requestFullscreen();
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className={`group relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden rounded-2xl bg-black shadow-lg ring-1 ring-white/10 transition-shadow hover:ring-white/20 h-full w-full ${compact ? "aspect-video !w-full !shrink-0 cursor-pointer" : ""}`}
+      onClick={compact ? (e) => { e.stopPropagation(); onPin(); } : undefined}
+    >
+      <HLSPlayer url={`http://localhost:3000/hls/${item.watchScript}/index.m3u8`} />
+      <div className="absolute bottom-2 left-2 z-10 flex items-center justify-center bg-black/60 px-2 py-1 rounded text-xs text-white backdrop-blur-sm pointer-events-none">
+        <span className="font-semibold shadow-md">OBS Stream</span>
+      </div>
+      <button
+        type="button"
+        className="btn btn-circle btn-ghost btn-xs absolute right-2 top-2 z-50 border-0 bg-black/60 text-sm text-white opacity-0 backdrop-blur-sm transition-opacity hover:bg-black/80 group-hover:opacity-100"
+        onClick={(e) => { e.stopPropagation(); onPin(); }}
+        title="Pin video"
+      >
+        📌
       </button>
     </div>
   );

@@ -1,9 +1,11 @@
 import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { socket } from "../socket";
 import Controls from "./Controls.jsx";
 import ParticipantsPanel from "./ParticipantsPanel.jsx";
 import ChatRoom1 from "./ChatRoom1.jsx";
 import VideoGrid from "./VideoGrid.jsx";
+import HLSPlayer from "./HLSPlayer.jsx";
 import { joinMeetingUrl, shareOrCopyLink } from "../utils/shareLink";
 
 export default function MeetingRoom({
@@ -13,12 +15,37 @@ export default function MeetingRoom({
   isHost,
   isOwner,
   initialIsLive,
+  streamKey,
+  watchScript,
   onDisconnect,
 }) {
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
+  const [isLive, setIsLive] = useState(initialIsLive);
+  const [showOBSModal, setShowOBSModal] = useState(false);
+  const [watchOBS, setWatchOBS] = useState(initialIsLive);
 
   const shareUrl = useMemo(() => joinMeetingUrl(roomName), [roomName]);
+
+  useEffect(() => {
+    socket.connect();
+    socket.emit("joinRoom", roomName);
+
+    const handleLiveStatus = (newLiveStatus) => {
+      setIsLive(newLiveStatus);
+      if (newLiveStatus) {
+        setWatchOBS(true);
+      } else if (!isHost) {
+        onDisconnect();
+      }
+    };
+
+    socket.on("updateLiveStatus", handleLiveStatus);
+
+    return () => {
+      socket.off("updateLiveStatus", handleLiveStatus);
+    };
+  }, [roomName, isHost, onDisconnect]);
 
   return (
     <LiveKitRoom
@@ -31,6 +58,15 @@ export default function MeetingRoom({
       onDisconnected={onDisconnect}
     >
       <div className="absolute right-4 top-4 z-50 mt-12 flex flex-wrap items-center justify-end gap-2">
+        {isOwner && (
+          <button
+            type="button"
+            className="btn btn-sm btn-info gap-1 rounded-full px-4 font-semibold text-white shadow-md backdrop-blur-sm"
+            onClick={() => setShowOBSModal(true)}
+          >
+            OBS Info
+          </button>
+        )}
         <button
           type="button"
           className="btn btn-sm gap-1 rounded-full border border-base-300/80 bg-base-100/95 px-4 font-semibold text-base-content shadow-md backdrop-blur-sm hover:bg-base-100"
@@ -70,8 +106,17 @@ export default function MeetingRoom({
           </div>
         )}
 
-        <div className="relative h-full min-h-0 min-w-0 flex-1 overflow-hidden bg-gradient-to-br from-neutral to-black">
-          <VideoGrid />
+        <div className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-gradient-to-br from-neutral to-black">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <VideoGrid watchOBS={watchOBS} watchScript={watchScript} />
+          </div>
+          
+          <div className="absolute left-4 top-4 z-40 bg-black/50 px-3 py-1 rounded shadow-md backdrop-blur-sm">
+             <label className="cursor-pointer label p-0 gap-2">
+               <span className="label-text text-white font-bold">Watch OBS</span>
+               <input type="checkbox" className="toggle toggle-primary toggle-sm" checked={watchOBS} onChange={(e) => setWatchOBS(e.target.checked)} />
+             </label>
+          </div>
         </div>
 
         {showChat && (
@@ -85,9 +130,38 @@ export default function MeetingRoom({
         onDisconnect={onDisconnect}
         isHost={isHost}
         isOwner={isOwner}
-        initialIsLive={initialIsLive}
+        initialIsLive={isLive}
         roomName={roomName}
+        onLiveChange={setIsLive}
       />
+      
+      {showOBSModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">OBS Streaming Info</h3>
+            <p className="py-4 text-sm text-base-content/70">
+              Use these details in OBS Studio to stream directly to this meeting via RTMP.
+              Participants can toggle "Watch OBS" to view your stream.
+            </p>
+            <div className="form-control mb-2">
+              <label className="label">
+                <span className="label-text font-semibold">RTMP Server URL</span>
+              </label>
+              <input type="text" readOnly className="input input-bordered w-full" value="rtmp://localhost:1935/live" />
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-semibold">Stream Key</span>
+              </label>
+              <input type="text" readOnly className="input input-bordered w-full" value={streamKey || ''} />
+            </div>
+            <div className="modal-action">
+              <button className="btn" onClick={() => setShowOBSModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <RoomAudioRenderer />
     </LiveKitRoom>
   );

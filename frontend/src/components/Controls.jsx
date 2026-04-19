@@ -2,12 +2,14 @@ import { useLocalParticipant, useRoomContext } from "@livekit/components-react";
 import { useState } from "react";
 import API from "../services/api";
 import { toast } from "react-hot-toast";
+import { socket } from "../socket.js";
 export default function Controls({
   onDisconnect,
   isHost,
   isOwner,
   initialIsLive,
   roomName,
+  onLiveChange,
 }) {
   const {
     localParticipant,
@@ -38,6 +40,8 @@ export default function Controls({
     try {
       const res = await API.put(`/meeting1/live/${roomName}`);
       setIsLive(res.data.isLive);
+      if (onLiveChange) onLiveChange(res.data.isLive);
+      socket.emit("liveStatusChanged", { room: roomName, isLive: res.data.isLive });
     } catch (error) {
       toast.error("Failed to change live status");
       console.error(error);

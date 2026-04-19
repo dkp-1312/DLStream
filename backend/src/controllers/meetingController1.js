@@ -1,6 +1,7 @@
 import Meeting from "../models/Meeting.js";
 import { v4 as uuidv4 } from "uuid";
 import { AccessToken } from "livekit-server-sdk";
+import crypto from "crypto";
 
 
 // const LIVEKIT_URL = "wss://dlstream-api.eastasia.cloudapp.azure.com";
@@ -10,6 +11,8 @@ export const createMeeting = async (req, res) => {
   try {
     const { meetingName, meetingDate, invitations } = req.body;
     const roomName = `room-${uuidv4()}`;
+    const streamKey = crypto.randomBytes(8).toString("hex");
+    const watchScript = crypto.randomBytes(8).toString("hex");
 
     const meetingLink = `http://localhost:5173/JoinMeeting/${roomName}`;
     const meeting = await Meeting.create({
@@ -18,6 +21,8 @@ export const createMeeting = async (req, res) => {
       ownerId: req.user._id || "demoUser",
       roomName,
       meetingLink,
+      streamKey,
+      watchScript,
       invitations: invitations.map(email => ({ email }))
     });
     res.status(201).json(meeting);
@@ -36,8 +41,8 @@ export const joinMeeting = async (req, res) => {
     if (!meeting) return res.status(404).json({ error: "Meeting not found" });
 
     // Determine Roles
-    const isOwner = meeting.ownerId.toString() === req.user._id.toString();
-    const isInvited = meeting.invitations.some(inv => inv.email === req.user.email);
+    const isOwner = !!(req.user && meeting.ownerId.toString() === req.user._id.toString());
+    const isInvited = !!(req.user && meeting.invitations.some(inv => inv.email === req.user.email));
     const isHost = isOwner || isInvited;
 
     // 🔥 GATEKEEPER: Block Viewers if the meeting is not Live yet
@@ -48,13 +53,14 @@ export const joinMeeting = async (req, res) => {
     }
 
     // Generate Token
-    const uniqueIdentity = `${req.user._id}_${Date.now()}`;
-    const displayName = req.user.fullName || username;
+    const uniqueIdentity = req.user ? `${req.user._id}_${Date.now()}` : `guest_${Date.now()}`;
+    const displayName = req.user ? req.user.fullName : (username || "Guest");
+    const profilePic = req.user ? (req.user.profilePic || "") : "";
 
     const at = new AccessToken(process.env.API_KEY1, process.env.API_SECRET1, {
       identity: uniqueIdentity,
       name: displayName,
-      metadata: JSON.stringify({ profilePic: req.user.profilePic || "" })
+      metadata: JSON.stringify({ profilePic })
     });
 
     at.addGrant({
@@ -67,7 +73,7 @@ export const joinMeeting = async (req, res) => {
     const token = await at.toJwt();
 
     // 🔥 Send isOwner and isLive state to frontend
-    res.json({ token, url: process.env.LIVEKIT_URL1, isHost, isOwner, isLive: meeting.isLive });
+    res.json({ token, url: process.env.LIVEKIT_URL1, isHost, isOwner, isLive: meeting.isLive, streamKey: isOwner ? meeting.streamKey : undefined, watchScript: meeting.watchScript });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -131,4 +137,8 @@ export const getUserMeetings = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+export const getMeetingByStreamKey = async (streamKey) => {
+  return await Meeting.findOne({ streamKey });
 };

@@ -13,12 +13,14 @@ export default function HLSPlayer({ url }) {
   }, [url]);
 
   return (
-    <video
-      ref={videoRef}
-      controls
-      autoPlay
-      playsInline
-      style={{ width: "100%", borderRadius: "10px" }}
-    />
+    <div className="relative w-full h-full">
+      <video
+        ref={videoRef}
+        controls={true}
+        autoPlay
+        playsInline
+        className="w-full h-full object-contain bg-black rounded-lg"
+      />
+    </div>
   );
 }

@@ -14,6 +14,8 @@ export default function JoinMeeting() {
   const [isHost, setIsHost] = useState(false);
   const [isOwner, setIsOwner] = useState(false); // 🔥 Track if user is the actual owner
   const [isLive, setIsLive] = useState(false);   // 🔥 Track room state
+  const [streamKey, setStreamKey] = useState("");
+  const [watchScript, setWatchScript] = useState("");
   const [isConnected, setIsConnected] = useState(false);
 
   const handleJoin = async () => {
@@ -28,6 +30,8 @@ export default function JoinMeeting() {
       setIsHost(res.data.isHost); 
       setIsOwner(res.data.isOwner); 
       setIsLive(res.data.isLive);
+      setStreamKey(res.data.streamKey);
+      setWatchScript(res.data.watchScript);
       setIsConnected(true);
     } catch (error) {
       // 🔥 Show the specific error if the meeting isn't live yet
@@ -55,6 +59,8 @@ export default function JoinMeeting() {
       isHost={isHost} 
       isOwner={isOwner} 
       initialIsLive={isLive}
+      streamKey={streamKey}
+      watchScript={watchScript}
       onDisconnect={handleDisconnect} 
     />
   );

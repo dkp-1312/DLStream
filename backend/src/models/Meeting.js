@@ -29,7 +29,9 @@ const meetingSchema= new mongoose.Schema(
         roomName:{type:String,required:true},
         meetingLink:{type:String,required:true},
         invitations:[invitationSchema],
-        isLive: { type: Boolean, default: false }
+        isLive: { type: Boolean, default: false },
+        streamKey: { type: String },
+        watchScript: { type: String }
     },
     {timestamps:true}
 );

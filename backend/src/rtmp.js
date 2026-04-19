@@ -1,6 +1,7 @@
 import NodeMediaServer from "node-media-server";
 import {startFFmpeg,stopFFmpeg} from "./ffmpeg.js";
 import {getStreamByKey} from "./controllers/streamController.js";
+import {getMeetingByStreamKey} from "./controllers/meetingController1.js";
 
 const config = {
   rtmp: {
@@ -32,13 +33,21 @@ nms.on("postPublish",async (session) => {
   console.log("📍 Full Path:", actualPath);
   console.log("🔑 Stream Key:", streamKey);
 
+  let watchScript;
   const stream=await getStreamByKey({params:{key:streamKey}});
+  if (stream) {
+    watchScript = stream.watchScript;
+  } else {
+    const meeting = await getMeetingByStreamKey(streamKey);
+    if (meeting) {
+      watchScript = meeting.watchScript;
+    }
+  }
 
-  if (!stream || !stream.watchScript) {
+  if (!watchScript) {
     console.warn("⚠️ Stream not found or missing watchScript.");
     return;
   }
-  const watchScript=stream.watchScript;
   console.log("🎬 Using watchScript for HLS:", watchScript);
   // Pass the key to your FFmpeg function
   startFFmpeg(streamKey,watchScript);

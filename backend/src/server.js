@@ -29,7 +29,7 @@ const frontend=process.env.frontend_url;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: frontend, 
+  origin: frontend, // Replace with your frontend URL
   credentials: true, 
 }));
 
@@ -92,6 +92,10 @@ io.on("connection", (socket) => {
     socket.on("sendMessage", ({ room, message }) => {
         console.log("Message to room:", room);
         io.to(room).emit("receiveMessage", message);
+    });
+
+    socket.on("liveStatusChanged", ({ room, isLive }) => {
+        io.to(room).emit("updateLiveStatus", isLive);
     });
 
     socket.on("disconnect", () => {

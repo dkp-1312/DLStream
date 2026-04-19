@@ -6,7 +6,6 @@ import { shareOrCopyLink, watchStreamUrl } from "../utils/shareLink";
 export default function WatchStream() {
   const { key } = useParams();
   const shareUrl = watchStreamUrl(key);
-
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 lg:flex-row lg:gap-6">
       <div className="min-w-0 flex-1">
@@ -29,7 +28,7 @@ export default function WatchStream() {
           </button>
         </div>
 
-        <HLSPlayer url={`https://dlstream-api.eastasia.cloudapp.azure.com/hls/${key}/index.m3u8`} />
+        <HLSPlayer url={`http://localhost:3000/hls/${key}/index.m3u8`} />
       </div>
 
       <div className="divider lg:divider-horizontal hidden lg:flex" />
