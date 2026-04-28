@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
 import dotenv from "dotenv";
-import {Server} from "socket.io";
+import { Server } from "socket.io";
 
 //import "dotenv/config"; 
 dotenv.config();
@@ -25,22 +25,23 @@ import { initSocketStore, registerUserSocket, unregisterUserSocket } from "./lib
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const frontend=process.env.frontend_url;
+const frontend = process.env.frontend_url;
 
 app.use(express.json());
 app.use(cookieParser());
+console.log("frontend", frontend);
 app.use(cors({
-  origin: frontend, // Replace with your frontend URL
-  credentials: true, 
+    origin: frontend, // Replace with your frontend URL
+    credentials: true,
 }));
 
-app.use("/auth",authRoutes);
-app.use("/otp",routerF);
-app.use("/profile",routerProfile);
+app.use("/auth", authRoutes);
+app.use("/otp", routerF);
+app.use("/profile", routerProfile);
 
-app.use("/stream",routerStream);
-app.use("/meeting",routerMeeting);
-app.use("/meeting1",routerMeeting1);
+app.use("/stream", routerStream);
+app.use("/meeting", routerMeeting);
+app.use("/meeting1", routerMeeting1);
 
 import routerNotification from "./routes/notification.routes.js";
 app.use("/notifications", routerNotification);
@@ -57,11 +58,11 @@ app.use("/hls", express.static(path.join(__dirname, "hls")));
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-       origin: frontend,
-       methods: ["GET", "POST"],
-       credentials: true
-      },
-  });
+        origin: frontend,
+        methods: ["GET", "POST"],
+        credentials: true
+    },
+});
 
 initSocketStore(io);
 
@@ -69,22 +70,22 @@ const rooms = {}; // Object to track users in each room
 
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
-    
+
     // 🔥 Track online users
     const userId = socket.handshake.query.userId;
     registerUserSocket(userId, socket.id);
 
-    socket.on("join-room",(roomId,userId)=>{
+    socket.on("join-room", (roomId, userId) => {
 
-    socket.join(roomId);
+        socket.join(roomId);
 
-    socket.to(roomId).emit("user-connected",userId);
+        socket.to(roomId).emit("user-connected", userId);
 
-    socket.on("disconnect",()=>{
-      socket.to(roomId).emit("user-disconnected",userId);
+        socket.on("disconnect", () => {
+            socket.to(roomId).emit("user-disconnected", userId);
+        });
+
     });
-
-  });
     socket.on("joinRoom", (room) => {
         if (!rooms[room]) {
             rooms[room] = new Set(); // Initialize the room if it doesn't exist
@@ -113,7 +114,7 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
-        
+
         // 🔥 Remove from userSocketMap
         unregisterUserSocket(userId);
 

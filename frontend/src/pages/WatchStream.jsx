@@ -28,7 +28,7 @@ export default function WatchStream() {
           </button>
         </div>
 
-        <HLSPlayer url={`http://localhost:3000/hls/${key}/index.m3u8`} />
+        <HLSPlayer url={`${import.meta.env.VITE_API_URL}/hls/${key}/index.m3u8`} />
       </div>
 
       <div className="divider lg:divider-horizontal hidden lg:flex" />
