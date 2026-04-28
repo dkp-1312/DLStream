@@ -48,7 +48,7 @@ export default function CreateStream() {
           <h3>OBS Watch Script:</h3>
           <code>{stream.watchScript}</code>
           <p>
-            RTMP URL: <b>rtmp://localhost/live</b>
+            RTMP URL: <b>{import.meta.env.VITE_RTMP_URL || "rtmp://localhost/live"}</b>
           </p>
           
         </div>

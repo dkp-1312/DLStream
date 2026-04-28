@@ -95,7 +95,7 @@ export default function VideoGrid({ watchOBS, watchScript }) {
         <div className="box-border flex h-full min-h-0 w-full gap-3 p-3 sm:gap-4 sm:p-4">
           <div ref={pinnedContainerRef} className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-neutral ring-1 ring-white/10 shadow-2xl [&_video]:!h-full [&_video]:!w-full [&_video]:!object-contain">
             {pinnedTrack.type === "obs" ? (
-              <HLSPlayer url={`http://localhost:3000/hls/${pinnedTrack.watchScript}/index.m3u8`} />
+              <HLSPlayer url={`${import.meta.env.VITE_API_URL}/hls/${pinnedTrack.watchScript}/index.m3u8`} />
             ) : (
               <ParticipantTile trackRef={pinnedTrack.track} className="h-full w-full" />
             )}
@@ -310,7 +310,7 @@ function OBSTile({ item, onPin, compact }) {
       className={`group relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden rounded-2xl bg-black shadow-lg ring-1 ring-white/10 transition-shadow hover:ring-white/20 h-full w-full ${compact ? "aspect-video !w-full !shrink-0 cursor-pointer" : ""}`}
       onClick={compact ? (e) => { e.stopPropagation(); onPin(); } : undefined}
     >
-      <HLSPlayer url={`http://localhost:3000/hls/${item.watchScript}/index.m3u8`} />
+      <HLSPlayer url={`${import.meta.env.VITE_API_URL}/hls/${item.watchScript}/index.m3u8`} />
       <div className="absolute bottom-2 left-2 z-10 flex items-center justify-center bg-black/60 px-2 py-1 rounded text-xs text-white backdrop-blur-sm pointer-events-none">
         <span className="font-semibold shadow-md">OBS Stream</span>
       </div>

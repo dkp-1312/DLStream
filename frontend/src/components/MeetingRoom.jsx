@@ -147,7 +147,7 @@ export default function MeetingRoom({
               <label className="label">
                 <span className="label-text font-semibold">RTMP Server URL</span>
               </label>
-              <input type="text" readOnly className="input input-bordered w-full" value="rtmp://localhost:1935/live" />
+              <input type="text" readOnly className="input input-bordered w-full" value={import.meta.env.VITE_RTMP_URL || "rtmp://localhost:1935/live"} />
             </div>
             <div className="form-control">
               <label className="label">
