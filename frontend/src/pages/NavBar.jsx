@@ -5,13 +5,26 @@ import { useAuthContext } from "../context/AuthContext.jsx";
 import { API } from "../services/api";
 
 const NavBar = () => {
-  const { authUser, handleLogout: contextHandleLogout } = useAuthContext();
+  const { authUser, handleLogout: contextHandleLogout, socket } = useAuthContext();
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
   const [portalReady, setPortalReady] = useState(false);
 
   useEffect(() => {
     setPortalReady(true);
   }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("newNotification", (notif) => {
+        setNotifications((prev) => [notif, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        // Optional: show a quick toast
+        // toast.success("New notification!"); 
+      });
+
+      return () => socket.off("newNotification");
+    }
+  }, [socket]);
 
   useEffect(() => {
     if (!desktopMenuOpen) return;
@@ -130,6 +143,48 @@ const NavBar = () => {
       </>,
       document.body
     );
+
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (authUser) {
+      fetchNotifications();
+    }
+  }, [authUser]);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await API.get("/notifications");
+      setNotifications(res.data.notifications);
+      setUnreadCount(res.data.notifications.filter(n => !n.isRead).length);
+    } catch (error) {
+      console.error("Failed to fetch notifications", error);
+    }
+  };
+
+  const markAsRead = async (id, link) => {
+    try {
+      await API.put(`/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      if (link) {
+        window.location.href = link;
+      }
+    } catch (error) {
+      console.error("Failed to mark as read", error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await API.put("/notifications/read-all");
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Failed to mark all as read", error);
+    }
+  };
 
   return (
     <>
@@ -267,29 +322,69 @@ const NavBar = () => {
           <div className="navbar-end flex-1 gap-1 sm:gap-2">
             {authUser ? (
               <>
-                <Link
-                  to="/notifications"
-                  className="btn btn-ghost btn-circle btn-sm"
-                  title="Notifications"
-                >
-                  <span className="indicator">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                      />
-                    </svg>
-                    <span className="badge badge-primary badge-xs indicator-item" />
-                  </span>
-                </Link>
+                <div className="dropdown dropdown-end">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle btn-sm hover:bg-base-200 transition-colors duration-200" title="Notifications">
+                    <span className="indicator">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 hover:scale-110 transition-transform duration-200"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                        />
+                      </svg>
+                      {unreadCount > 0 && <span className="badge badge-error badge-xs indicator-item animate-pulse border-none shadow-[0_0_8px_rgba(255,0,0,0.6)]"></span>}
+                    </span>
+                  </div>
+                  <div tabIndex={0} className="dropdown-content z-[100] menu flex flex-col shadow-2xl bg-base-100/95 backdrop-blur-2xl rounded-2xl w-80 max-h-96 mt-4 border border-base-300/50 overflow-hidden transform origin-top-right transition-all">
+                    <div className="flex justify-between items-center px-4 py-3 bg-base-200/50 border-b border-base-300/50">
+                      <span className="font-extrabold text-base-content tracking-tight">Notifications 
+                        {unreadCount > 0 && <span className="ml-2 text-xs bg-primary text-primary-content px-2 py-0.5 rounded-full">{unreadCount} new</span>}
+                      </span>
+                      {unreadCount > 0 && (
+                        <button onClick={markAllAsRead} className="text-xs text-primary font-semibold hover:text-primary-focus transition-colors">
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+                    
+                    <div className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-thin scrollbar-thumb-base-300">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center flex flex-col items-center gap-2">
+                          <div className="bg-base-200 p-3 rounded-full text-base-content/30 mb-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                            </svg>
+                          </div>
+                          <span className="text-sm font-medium text-base-content/60">No new notifications</span>
+                        </div>
+                      ) : (
+                        <ul className="menu menu-compact w-full p-2 space-y-1">
+                          {notifications.slice(0, 5).map(n => (
+                            <li key={n._id} onClick={() => markAsRead(n._id, n.link)} className="overflow-hidden">
+                              <div className={`flex flex-col gap-1 p-3 items-start transition-all duration-200 rounded-xl ${!n.isRead ? 'bg-primary/10 hover:bg-primary/20 border-l-2 border-primary' : 'hover:bg-base-200 border-l-2 border-transparent'}`}>
+                                <span className={`text-sm line-clamp-2 ${!n.isRead ? 'font-semibold text-base-content' : 'text-base-content/80'}`}>{n.message}</span>
+                                <span className="text-[10px] font-medium opacity-60 uppercase tracking-wider">{new Date(n.createdAt).toLocaleDateString()} at {new Date(n.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    
+                    <div className="border-t border-base-300/50 bg-base-200/30 p-2 text-center">
+                      <Link to="/notifications" className="text-xs font-bold text-primary hover:text-primary-focus uppercase tracking-widest px-4 py-2 block w-full rounded-lg hover:bg-primary/10 transition-colors">
+                        View All
+                      </Link>
+                    </div>
+                  </div>
+                </div>
                 {authUser.profilePic && (
                   <div className="avatar px-2">
                     <div className="w-8 rounded-full">

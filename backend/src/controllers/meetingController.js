@@ -1,5 +1,6 @@
 import Meeting from "../models/Meeting.js";
-
+import Notification from "../models/Notification.js";
+import { emitToUser } from "../lib/socketStore.js";
 export const createMeeting=async(req,res)=>{
     try {
         const {meetingName,meetingDate,invitations}=req.body;
@@ -55,13 +56,13 @@ export const getUserMeetings = async (req, res) => {
 
 export const getMeetingDetails=async(req,res)=>{
     const meeting=await Meeting.findById(req.params.meetingId);
-    if(meeting.ownerId.toString()!==req.user._id.toString())
-    {
-        return res.status(403).json({message:"Access denied"});
-    }
     if(!meeting)
     {
         return res.status(404).json({message:"Meeting not found"});
+    }
+    if(meeting.ownerId.toString()!==req.user._id.toString())
+    {
+        return res.status(403).json({message:"Access denied"});
     }
     console.log(meeting);
     res.status(200).json(meeting);
@@ -81,6 +82,24 @@ export const updateInvitationStatus=async(req,res)=>{
         }
         invite.status=status;
         await meeting.save();
+
+        // Create notification for the owner
+        const expirationDate = new Date(meeting.meetingDate) > new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) 
+            ? new Date(meeting.meetingDate) 
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        const notif = await Notification.create({
+            recipient: meeting.ownerId,
+            sender: req.user._id,
+            type: status.toUpperCase(), 
+            meetingId: meeting._id,
+            message: `${req.user.fullName || req.user.email} has ${status} your meeting: ${meeting.meetingName}`,
+            link: `/MeetingDetails/${meeting._id}`,
+            expiresAt: expirationDate
+        });
+
+        emitToUser(meeting.ownerId.toString(), "newNotification", notif);
+
         res.status(200).json({success:true,message:"Invitation status updated"});
     } catch (error) {
         res.status(500).json({error:error.message});

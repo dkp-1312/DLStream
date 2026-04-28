@@ -31,7 +31,12 @@ const meetingSchema= new mongoose.Schema(
         invitations:[invitationSchema],
         isLive: { type: Boolean, default: false },
         streamKey: { type: String },
-        watchScript: { type: String }
+        watchScript: { type: String },
+        status: {
+            type: String,
+            enum: ["scheduled", "cancelled", "completed"],
+            default: "scheduled"
+        }
     },
     {timestamps:true}
 );

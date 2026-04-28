@@ -21,6 +21,7 @@ import routerMeeting1 from "./routes/meetingRoutes1.js";
 import routerS from "./routes/streamRoutes.js";
 import { fileURLToPath } from 'url';
 import path from 'path';
+import { initSocketStore, registerUserSocket, unregisterUserSocket } from "./lib/socketStore.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,11 +42,16 @@ app.use("/stream",routerStream);
 app.use("/meeting",routerMeeting);
 app.use("/meeting1",routerMeeting1);
 
+import routerNotification from "./routes/notification.routes.js";
+app.use("/notifications", routerNotification);
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use("/streams", routerS);
 app.use("/hls", express.static(path.join(__dirname, "hls")));
+
 
 
 const server = http.createServer(app);
@@ -57,10 +63,17 @@ const io = new Server(server, {
       },
   });
 
+initSocketStore(io);
+
 const rooms = {}; // Object to track users in each room
 
 io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
+    
+    // 🔥 Track online users
+    const userId = socket.handshake.query.userId;
+    registerUserSocket(userId, socket.id);
+
     socket.on("join-room",(roomId,userId)=>{
 
     socket.join(roomId);
@@ -100,6 +113,10 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
+        
+        // 🔥 Remove from userSocketMap
+        unregisterUserSocket(userId);
+
         // Remove the user from all rooms they were part of
         for (const room in rooms) {
             if (rooms[room].has(socket.id)) {
@@ -115,6 +132,8 @@ io.on("connection", (socket) => {
         }
     });
 });
+
+export { app, io, server };
 
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

@@ -12,19 +12,35 @@ export const getProfile=async(req,res)=>{
     }
 };
 
-export const updateProfile=async(req,res)=>{
-    try{
-        const {fullName,username,bio,phone,profilePic}=req.body;
-        const user=await User.findByIdAndUpdate(
-            req.user.id,
-            {fullName,username,bio,phone,profilePic},
-            {new:true}
+import cloudinary from "../lib/cloudinary.js";
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { fullName, username, bio, phone } = req.body;
+        let profilePicUrl = req.body.profilePic;
+
+        if (req.file) {
+            const b64 = Buffer.from(req.file.buffer).toString("base64");
+            let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+            const cldRes = await cloudinary.uploader.upload(dataURI, {
+                folder: process.env.CLOUDINARY_FOLDER || undefined,
+            });
+            profilePicUrl = cldRes.secure_url;
+        }
+
+        const updateData = { fullName, username, bio, phone };
+        if (profilePicUrl) updateData.profilePic = profilePicUrl;
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id || req.user.id,
+            updateData,
+            { new: true }
         ).select("-password");
-        res.json({success:true,user});
-    }
-    catch(error)
-    {
-        res.status(500).json({msg:"Update Failed"});
+        
+        res.json({ success: true, user });
+    } catch (error) {
+        console.error("Profile update error:", error);
+        res.status(500).json({ msg: "Update Failed", error: error.message });
     }
 };
 

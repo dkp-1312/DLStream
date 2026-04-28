@@ -38,75 +38,75 @@ const App = () => {
     },
     {
       path:"/home",
-      element: <><NavBar/> <Home/></>,
+      element: <ProtectedRoute><><NavBar/> <Home/></></ProtectedRoute>,
     },
     {
       path:"/create",
-      element:<><NavBar/><CreateStream/></>
+      element: <ProtectedRoute><><NavBar/><CreateStream/></></ProtectedRoute>
     },
     {
       path:"/watch/:key",
-      element: <><NavBar/> <WatchStream/></>,
+      element: <ProtectedRoute><><NavBar/> <WatchStream/></></ProtectedRoute>,
     },
     {
-      path:"/createMeeting",//LiveKit
-      element:<><NavBar/><CreateMeeting/></>
+      path:"/createMeeting",
+      element:<ProtectedRoute><><NavBar/><CreateMeeting/></></ProtectedRoute>
     },
     {
       path:"/createMeeting1",
-      element:<><NavBar/><CreateMeeting1/></>
+      element:<ProtectedRoute><><NavBar/><CreateMeeting1/></></ProtectedRoute>
     },
     {
       path:"/meetings",
-      element:<><NavBar/><MeetingsPage/></>
+      element:<ProtectedRoute><><NavBar/><MeetingsPage/></></ProtectedRoute>
     },
     {
       path:"/calendar",
-      element:<><NavBar/><CalendarPage/></>
+      element:<ProtectedRoute><><NavBar/><CalendarPage/></></ProtectedRoute>
     },
     {
       path:"/MeetingDetails/:meetingId",
-      element:<><NavBar/><MeetingDetails/></>
+      element:<ProtectedRoute><><NavBar/><MeetingDetails/></></ProtectedRoute>
     },
     {
-      path:"/JoinMeeting/:roomName",//Livekit
-      element:<><NavBar/><JoinMeeting/></>
+      path:"/JoinMeeting/:roomName",
+      element:<ProtectedRoute><><NavBar/><JoinMeeting/></></ProtectedRoute>
     },
     {
       path:"/chat/:roomName",
-      element:<><ChatRoom/></>
+      element:<ProtectedRoute><><ChatRoom/></></ProtectedRoute>
     },
     {
       path:"/broadcast/:id",
-      element: <><NavBar/> <Broadcast/></>,
+      element: <ProtectedRoute><><NavBar/> <Broadcast/></></ProtectedRoute>,
     },
     {
       path:"/stream/:id",
-      element: <><NavBar/> <Watch/></>,
+      element: <ProtectedRoute><><NavBar/> <Watch/></></ProtectedRoute>,
     },
     {
       path: "/login",
-      element:!authUser?(<><NavBar/> <LoginPage /></>):(<Navigate to="/"  replace/>),
+      element:!authUser?(<><NavBar/> <LoginPage /></>):(<Navigate to="/" replace/>),
     },
     {
       path: "/signup",
-      element: !authUser?( <><NavBar/><SignUpPage /></>):(<Navigate to="/"  replace/>),
+      element: !authUser?( <><NavBar/><SignUpPage /></>):(<Navigate to="/" replace/>),
     },
     {
       path: "/profile",
-      element: !authUser?(<Navigate to="/login"  replace/>):(<><NavBar/><Profile /></>),
+      element: <ProtectedRoute><><NavBar/><Profile /></></ProtectedRoute>,
     },
     {
       path: "/editProfile",
-      element: !authUser?(<Navigate to="/login"  replace/>):(<><NavBar/><EditProfile /></>),
+      element: <ProtectedRoute><><NavBar/><EditProfile /></></ProtectedRoute>,
     },
     {
       path: "/settings",
-      element: !authUser?(<Navigate to="/login"  replace/>):(<><NavBar/><Settings /></>),
+      element: <ProtectedRoute><><NavBar/><Settings /></></ProtectedRoute>,
     },
     {
       path: "/notifications",
-      element: <><NavBar/> <NotificationsPage /></>,
+      element: <ProtectedRoute><><NavBar/> <NotificationsPage /></></ProtectedRoute>,
     },
     {
       path: "/Ax",
@@ -118,7 +118,7 @@ const App = () => {
     },
     {
       path: "/meeting/:meetingId",
-      element: <><NavBar /><MeetingRoom /></>,
+      element: <ProtectedRoute><><NavBar /><MeetingRoom /></></ProtectedRoute>,
     },
   ]);
   return (
